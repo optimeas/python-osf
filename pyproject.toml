@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "osf4"
-version = "0.0.1"
+name = "libosf"
+version = "2023.0.1dev1"
 authors = [{name="Paul Jena", email="paul.jena@optimeas.de" }]
 description = "Open Stream Format 4 programming utilites"
 readme = "README.md"
