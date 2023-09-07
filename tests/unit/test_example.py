@@ -1,4 +1,4 @@
-from osf4.core import Header
+import libosf as osf
 import io
 import pytest
 

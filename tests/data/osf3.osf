@@ -1,0 +1,17 @@
+OCEAN_STREAM_FORMAT3 390
+<?xml version="1.0" encoding="UTF-8"?>
+<ocean creator="{29c80b82-e260-4694-b199-7df23bd56318}" byte_order="little" created_utc="1693792800000" created_timezoneoffset="0" highres_time="ns" version="1">
+  <channels count="1">
+    <channel physicalunit="V" physicaldimension="" user_reference="{acd29044-2c5e-416a-b0c3-b2ac14a997cf}" type="float" oid="Ch 1" index="0"/>
+  </channels>
+</ocean>
+  W @ד�� �� �    � I���* ��U�SR�W���H���T�hQ������XT��O�R���j���U�Q�����*���U�R�t�����^T��Q���p����DV��R�\������nV��R���Z�C��V�qP�-���S��)U�P���
+B��!�
+���pn�
+
+  <channels count="1">
+    <channel samples="900000" segments="6686" first_ns="1693792800000000000" last_ns="1693796399996000000" first_utc="2023-09-04T02:00:00" last_utc="2023-09-04T02:59:59" index="0"/>
+  </channels>
+</trailer>
+OCEAN_STREAM_END 3633865
+===============
