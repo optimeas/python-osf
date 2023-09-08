@@ -20,6 +20,13 @@ def test_qload_channel():
 
     assert len(channels) == 23
 
+    queried_channels = [ch for ch in channels if
+                        ch.name in [
+                            'Ruuvi.Sensor.Motor.BatteryVoltage',
+                            'Ruuvi.Sensor.Motor.MacAddress'
+                        ]]
+    assert len(queried_channels) == 2
+
 
 def test_qload_metadata():
     with osf.read_file('../data/osf4_ruvvi.osf') as file:
