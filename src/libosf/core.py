@@ -99,7 +99,7 @@ class Metadata:
 
 
 def construct_metadata(element: ET.Element) -> Metadata:
-    count = int(element.find('.//channels').attrib["count"])
+    count = int(element.find('.//channels').attrib.get("count", 0))
     infos_element = element.find('.//infos')
     infos = {}
     if infos_element is not None:
@@ -115,10 +115,10 @@ def construct_metadata(element: ET.Element) -> Metadata:
 
     # FIXME: build an dictonary with catching of KeyErrors and pass to Metadata constructor
     metadata = Metadata(
-        creator=element.attrib["creator"],
-        created_utc=element.attrib["created_utc"],
-        tag=element.attrib["tag"],
-        namespacesep=element.attrib['namespacesep'],
+        creator=element.attrib.get("creator", 'unkown'),
+        created_utc=element.attrib.get("created_utc", ''),
+        tag=element.attrib.get('tag', ''),
+        namespacesep=element.attrib.get('namespacesep',''),
         channel_count=count,
         infos=infos
     )
