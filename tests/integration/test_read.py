@@ -33,8 +33,9 @@ def test_qload_metadata():
         metadata = file.metadata()
 
     assert metadata.creator == '17002700018'
-    assert metadata.created_at_latitude == '0'
-    assert metadata.libosf == '355b1caa'
+    assert metadata.created_utc == '2023-09-04T09:01:45Z'
+    assert metadata.channel_count == 23
+    assert metadata.infos.get('libosf','') == '355b1caa'
 
 
 def test_load_all_channels():

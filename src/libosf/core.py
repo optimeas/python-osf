@@ -1,7 +1,5 @@
-import xml.etree.ElementTree
 from enum import Enum
-import pathlib
-from attrs import define
+from attrs import define, field
 from contextlib import contextmanager
 from abc import ABC, abstractmethod
 from typing import BinaryIO
@@ -37,7 +35,7 @@ def get_magic_header(file: BinaryIO) -> dict:
     old_pos = file.tell()
     file.seek(0)
 
-    first_line = read_until(file, b'\n').decode().strip()
+    first_line = read_until(file, b'\n').decode()
 
     format_string: str
     size_string: str
@@ -65,41 +63,92 @@ class Channel4:
 
 
 class OSFObjectBase(ABC):
-    def __init__(self, file, header):
+    def __init__(self, file, magic_header):
         self._file = file
-        self._header = header
+        self._magic_header = magic_header
 
     @property
     def osf_version(self):
-        return self._header['osf_format']
+        return self._magic_header['osf_format']
 
     @property
     def header_size(self) -> int:
-        return self._header['header_size']
+        return self._magic_header['header_size']
 
     @property
     @abstractmethod
     def version_supported(self) -> bool:
         ...
 
-    def channels(self) -> list:
-        ...
 
-    def _read_xml_header(self) -> ET.Element:
-        self._file.seek(self._header['magic_length'])
-        data = self._file.read(self._header['header_size'])
-        return ET.fromstring(data)
+""""
+FIXME: 
+Could this the metadata be autoconstructed? Perhaps only define defaults for the fields and then construct if its 
+found inside the xml elements attributes?
+"""
+
+
+@define
+class Metadata:
+    creator = field(default='')
+    created_utc = field(default='')
+    tag = field(default='')
+    namespacesep = field(default='')
+    channel_count = field(default=0)
+    infos = field(default={})
+
+
+def construct_metadata(element: ET.Element) -> Metadata:
+    count = int(element.find('.//channels').attrib["count"])
+    infos_element = element.find('.//infos')
+
+    infos = {}
+
+    for info_element in infos_element:
+        if info_element.attrib.get('datatype', '') != 'string':
+            continue
+        try:
+            key = info_element.attrib['name']
+            value = info_element.attrib['value']
+            infos[key] = value
+        except KeyError:
+            continue
+
+    # FIXME: build an dictonary with catching of KeyErrors and pass to Metadata constructor
+    metadata = Metadata(
+        creator=element.attrib["creator"],
+        created_utc=element.attrib["created_utc"],
+        tag=element.attrib["tag"],
+        namespacesep=element.attrib['namespacesep'],
+        channel_count=count,
+        infos=infos
+    )
+
+    return metadata
 
 
 class OSF4Object(OSFObjectBase):
+    def __init__(self, stream, magic_header):
+        super().__init__(stream, magic_header)
+
+        self._xml_header = self._read_xml_header()
+
     @property
     def version_supported(self) -> bool:
         return True
 
     def channels(self) -> list[Channel4]:
-        elements = self._read_xml_header().findall('.//channel')
+        elements = self._xml_header.findall('.//channel')
 
         return [Channel4(element) for element in elements]
+
+    def metadata(self):
+        return construct_metadata(self._xml_header)
+
+    def _read_xml_header(self) -> ET.Element:
+        self._file.seek(self._magic_header['magic_length'])
+        data = self._file.read(self._magic_header['header_size'])
+        return ET.fromstring(data)
 
 
 class OSF3Object(OSFObjectBase):
