@@ -101,18 +101,17 @@ class Metadata:
 def construct_metadata(element: ET.Element) -> Metadata:
     count = int(element.find('.//channels').attrib["count"])
     infos_element = element.find('.//infos')
-
     infos = {}
-
-    for info_element in infos_element:
-        if info_element.attrib.get('datatype', '') != 'string':
-            continue
-        try:
-            key = info_element.attrib['name']
-            value = info_element.attrib['value']
-            infos[key] = value
-        except KeyError:
-            continue
+    if infos_element is not None:
+        for info_element in infos_element:
+            if info_element.attrib.get('datatype', '') != 'string':
+                continue
+            try:
+                key = info_element.attrib['name']
+                value = info_element.attrib['value']
+                infos[key] = value
+            except KeyError:
+                continue
 
     # FIXME: build an dictonary with catching of KeyErrors and pass to Metadata constructor
     metadata = Metadata(
