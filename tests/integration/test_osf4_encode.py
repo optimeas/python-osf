@@ -1,9 +1,12 @@
-from libosf.decode import read_sample_blob, convert_channels_to_array
+from pprint import pprint
+
+from libosf.decode import read_sample_blob, convert_channels_to_array, decode_metadata
 from pytest import fixture
 from xml.etree import ElementTree as ET
 from libosf.core import Channel4
 from array import array
 from io import BytesIO
+
 
 @fixture
 def channel_list():
@@ -45,36 +48,62 @@ def channel_list():
     return [Channel4(element) for element in elements]
 
 
-def test_blob_reading(channel_list):
-    def create_blob(index:int, size_of_length_value:int, blob_size:int) -> bytes:
-        result = index.to_bytes(byteorder='little', length=2)
-        result = result + blob_size.to_bytes(byteorder='little', length=size_of_length_value)
-        result = result + bytes(blob_size)
+def create_blob(index: int, size_of_length_value: int, blob_size: int) -> bytes:
+    result = index.to_bytes(byteorder='little', length=2)
+    result = result + blob_size.to_bytes(byteorder='little', length=size_of_length_value)
+    result = result + (8).to_bytes(byteorder='little') + bytes(blob_size-1)
 
-        return result
+    return result
 
-    stream = BytesIO(create_blob(1, 2, 32) +
-                     create_blob(3, 2, 128) +
-                     create_blob(2, 2, 1024) +
-                     create_blob(14, 4, 32768) +
-                     create_blob(17, 2, 32768) +
-                     create_blob(2, 2, 32768) +
+
+@fixture
+def blob_data() -> bytes:
+    return (create_blob(1, 2, 12*4+1) + create_blob(3, 2, 12*32+1) +
+            create_blob(2, 2, 12*1024+1) +
+            create_blob(17, 2, 32768) + create_blob(2, 2, 32768))
+
+
+def test_blob_reading(channel_list, blob_data):
+    stream = BytesIO(blob_data +
                      (create_blob(2, 2, 32768) * 32768)
                      )
     ch_info = convert_channels_to_array(channel_list)
 
     blob_array = []
     index = 0
-    bytes_size = stream.seek(0,2)
+    bytes_size = stream.seek(0, 2)
     while index < bytes_size:
-        blob, index = read_sample_blob(stream, ch_info, index)
+        blob, index, chi = read_sample_blob(stream, ch_info, index)
         blob_array.append(blob)
 
     print(bytes_size)
 
 
+def test_encode_datablob(channel_list, blob_data):
+    stream = BytesIO(blob_data * 64)
+    ch_info = convert_channels_to_array(channel_list)
 
+    blob_array = []
+    ch_info_array = []
+    index = 0
+    bytes_size = stream.seek(0, 2)
+    while index < bytes_size:
+        blob, index, chi = read_sample_blob(stream, ch_info, index)
+        blob_array.append(blob)
+        ch_info_array.append(chi)
 
+    index = 0
+    result_values = []
+    result_timestamps = []
+    for blob in blob_array:
+        values, timestamps = decode_metadata(blob, ch_info_array[index])
+        result_values.extend(values)
+        result_timestamps.extend(timestamps)
+        index = index + 1
 
+    print(f'{len(result_values):_}')
+    print(result_values[:20])
+    print(f'{len(result_timestamps):_}')
+    print(result_timestamps[:20])
 
-
+    print(f'Bytes Decoded: {bytes_size:_}')
