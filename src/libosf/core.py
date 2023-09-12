@@ -60,6 +60,7 @@ class Channel4:
         self.unit = attr['physicalunit']
         self.index = int(attr['index'])
         self.length_blob_size = int(attr['sizeoflengthvalue'])
+        self.type = str(attr['datatype'])
 
 
 class OSFObjectBase(ABC):
