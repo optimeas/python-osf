@@ -97,7 +97,7 @@ def test_encode_datablob(channel_list, blob_data):
     result_values = []
     result_timestamps = []
     for blob in blob_array:
-        values, timestamps = decode_metadata(blob, ch_info_array[index])
+        values, timestamps =  decode_datablob(blob, ch_info_array[index])
         result_values.extend(values)
         result_timestamps.extend(timestamps)
         index = index + 1
