@@ -52,4 +52,4 @@ def test_get_samples_by_channel_name():
             'Ruuvi.Sensor.Motor.MacAddress'
         ])
 
-    assert len(list(samples)) > 10
+    assert len(list(samples)) == 10
