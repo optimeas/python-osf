@@ -1,0 +1,12 @@
+- read_file throws "Unsupprted Format Exception" when os3/2/1 or unkown file is read in
+-DONE append numeric ch index to sample tuples
+- add pandas, scipy, matplotlib, np examples
+- add docuemntation
+- refactor, refactor
+- osf4.get_samples_by_name throws erro if a unkown channel name was passed.
+- write tests for reading in the different datatypes
+- different channels should proably be returned in there own np arrays accesible by a map, so a index with the timestamp could be constructed for each channel
+
+known_issues:
+- string timestamp semms to be wrong
+- scale and offset fields are ignored
