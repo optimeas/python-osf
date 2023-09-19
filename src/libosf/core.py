@@ -166,6 +166,32 @@ class OSF4Object(OSFObjectBase):
 
         return zip(result_values, result_timestamps)
 
+    def get_samples_by_name(self, name_list: list[str]):
+        ch_info = convert_channels_to_array(self.channels() )
+        blob_array = []
+        ch_info_array = []
+        ch_filter_list = [ch.index for ch in self.channels() if ch.name in name_list]
+
+        index = self._magic_header['header_size'] + self._magic_header['magic_length']
+        bytes_size = self._file.seek(0, 2)
+        while index < bytes_size:
+            blob, index, chi = read_sample_blob(self._file, ch_info, index)
+            if chi[0] in ch_filter_list:
+                blob_array.append(blob)
+                ch_info_array.append(chi)
+
+        index = 0
+        result_values = []
+        result_timestamps = []
+        for blob in blob_array:
+            values, timestamps = decode_datablob(blob, ch_info_array[index])
+            result_values.extend(values)
+            result_timestamps.extend(timestamps)
+            index = index + 1
+
+        return zip(result_values, result_timestamps)
+
+
 
 class OSF3Object(OSFObjectBase):
     @property
