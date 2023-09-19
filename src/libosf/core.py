@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from abc import ABC, abstractmethod
 from typing import BinaryIO
 from xml.etree import ElementTree as ET
+from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob, Channel4
 
 
 class OSFFormat(str, Enum):
@@ -51,16 +52,6 @@ def get_magic_header(file: BinaryIO) -> dict:
         'header_size': int(size_string),
         'magic_length': len(first_line) + 1
     }
-
-
-class Channel4:
-    def __init__(self, element: ET.Element):
-        attr = element.attrib
-        self.name = attr['name']
-        self.unit = attr['physicalunit']
-        self.index = int(attr['index'])
-        self.length_blob_size = int(attr['sizeoflengthvalue'])
-        self.type = str(attr['datatype'])
 
 
 class OSFObjectBase(ABC):
@@ -128,6 +119,9 @@ def construct_metadata(element: ET.Element) -> Metadata:
 
 
 class OSF4Object(OSFObjectBase):
+    """
+    this is a docstring
+    """
     def __init__(self, stream, magic_header):
         super().__init__(stream, magic_header)
 
@@ -149,6 +143,28 @@ class OSF4Object(OSFObjectBase):
         self._file.seek(self._magic_header['magic_length'])
         data = self._file.read(self._magic_header['header_size'])
         return ET.fromstring(data)
+
+    def all_samples(self):
+        ch_info = convert_channels_to_array(self.channels())
+        blob_array = []
+        ch_info_array = []
+        index = self._magic_header['header_size'] + self._magic_header['magic_length']
+        bytes_size = self._file.seek(0, 2)
+        while index < bytes_size:
+            blob, index, chi = read_sample_blob(self._file, ch_info, index)
+            blob_array.append(blob)
+            ch_info_array.append(chi)
+
+        index = 0
+        result_values = []
+        result_timestamps = []
+        for blob in blob_array:
+            values, timestamps = decode_datablob(blob, ch_info_array[index])
+            result_values.extend(values)
+            result_timestamps.extend(timestamps)
+            index = index + 1
+
+        return zip(result_values, result_timestamps)
 
 
 class OSF3Object(OSFObjectBase):

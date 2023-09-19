@@ -1,9 +1,9 @@
 from enum import Enum
 from attrs import define
 from array import array
-from libosf import Channel4
 import numpy as np
 from struct import unpack
+from xml.etree import ElementTree as ET
 
 byteorder = 'little'
 
@@ -11,6 +11,14 @@ CH_STRUCT_INDEX = 0
 CH_STRUCT_TYPELENGTH = 1
 CH_STRUCT_TYPE = 2
 
+class Channel4:
+    def __init__(self, element: ET.Element):
+        attr = element.attrib
+        self.name = attr['name']
+        self.unit = attr['physicalunit']
+        self.index = int(attr['index'])
+        self.length_blob_size = int(attr['sizeoflengthvalue'])
+        self.type = str(attr['datatype'])
 
 class ChannelConversionType(Enum):
     int = 0
@@ -78,7 +86,7 @@ class MetaInfo(Enum):
     bcAbsTimeStampData = 8
 
 
-def encode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
+def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
     metadata_enum = metadata_array[0] - 128 if metadata_array[0] >= 128 else metadata_array[0]
     control_bit = metadata_array[0] >> 7
 

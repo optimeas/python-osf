@@ -1,11 +1,12 @@
 from pprint import pprint
 
-from libosf.decode import read_sample_blob, convert_channels_to_array, decode_metadata
+from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob
 from pytest import fixture
 from xml.etree import ElementTree as ET
-from libosf.core import Channel4
+from libosf.osf4_decode import Channel4
 from array import array
 from io import BytesIO
+
 
 
 @fixture

@@ -42,7 +42,7 @@ def test_load_all_channels():
     with osf.read_file('../data/osf4_ruvvi.osf') as file:
         samples = file.all_samples()
 
-    assert len(samples) > 500
+    assert len(list(samples)) > 500
 
 
 def test_get_samples_by_channel_name():
@@ -52,4 +52,4 @@ def test_get_samples_by_channel_name():
             'Ruuvi.Sensor.Motor.MacAddress'
         ])
 
-    assert len(samples) > 10
+    assert len(list(samples)) > 10
