@@ -95,19 +95,21 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
         result['epoch_size'] = 8
         if control_bit == 1:
             result['sample_start'] = 1 + 4
-            result['num_samples'] = int.from_bytes(metadata_array[1:5].to_bytes(), byteorder=byteorder)
+            result['num_samples'] = int.from_bytes(metadata_array[1:5].tobytes(), byteorder=byteorder)
         else:
             result['sample_start'] = 1
             result['num_samples'] = 1
     elif metadata_enum == MetaInfo.bcMessageEvent.value:
         binary_data = metadata_array[8:16]
-        result['ts_epoch'] = binary_data.encode()
+        result['ts_epoch'] = int.from_bytes(binary_data.tobytes(), byteorder=byteorder, signed=False)
+        result['epoch_size'] = 0
         result['sample_start'] = 1 + 8 + 4
         result['num_samples'] = 1
         binary_data = metadata_array[9:13]
         result['sample_length'] = bytes_to_int(binary_data)
     else:
-        raise Exception('metadata type not supported')
+        print(metadata_enum)
+        return [], []
 
     value_result = []
     ts_result = []
@@ -140,7 +142,7 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
                 index = index + full_length
         case 4:
             ts_result.append(result['ts_epoch'])
-            value_result.append(metadata_array[index:].decode())
+            value_result.append(metadata_array[index:].tobytes().decode())
         case 5:
             while index < len(metadata_array):
                 ts_result.append(bytes_to_int(metadata_array[index:index + epoch_size]))
@@ -151,7 +153,8 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
 
 
 def convert_channels_to_array(channels: list[Channel4]) -> np.ndarray:
-    result = np.empty((len(channels), 3), dtype=np.int32)
+    result = np.empty((len(channels)+1, 3), dtype=np.int32)
+
     for ch in channels:
         result[ch.index][CH_STRUCT_INDEX] = ch.length_blob_size
         result[ch.index][CH_STRUCT_TYPELENGTH] = type_length[ch.type]
@@ -165,6 +168,6 @@ def read_sample_blob(stream, channel_info_array: array, start) -> tuple[array, i
     ch_index = bytes_to_int(stream.read(2))
     size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
     blob_length = bytes_to_int(stream.read(size_of_length_value))
-    return array('b', stream.read(blob_length)), stream.tell(), (
+    return array('B', stream.read(blob_length)), stream.tell(), (
         ch_index, channel_info_array[ch_index][CH_STRUCT_TYPELENGTH],
         channel_info_array[ch_index][CH_STRUCT_TYPE])
