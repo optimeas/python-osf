@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to example's documentation!
+Welcome to libosf's documentation!
 ===================================
 
 .. toctree::
@@ -14,7 +14,7 @@ Welcome to example's documentation!
 API Doc
 =======
 
-.. automodule:: example.core
+.. automodule:: libosf.core
    :members:
 
 
