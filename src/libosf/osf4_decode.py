@@ -138,7 +138,7 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
             ts_result = full_array[0].view('<u8')
             value_result = full_array[1]
         case 4:
-            ts_result = np.frombuffer(metadata_array[index:index + epoch_size], dtype=np.uint64)
+            ts_result = (result['ts_epoch'], )
             value_result = metadata_array[index:].tobytes().decode()
         case 5:
             full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, full_length]))
@@ -160,10 +160,15 @@ def convert_channels_to_array(channels: list[Channel4]) -> np.ndarray:
 
 
 def read_sample_blob(stream, channel_info_array: array, start) -> tuple[array, int, tuple]:
-    stream.seek(start)
-    ch_index = bytes_to_int(stream.read(2))
-    size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
-    blob_length = bytes_to_int(stream.read(size_of_length_value))
-    return array('B', stream.read(blob_length)), stream.tell(), (
-        ch_index, channel_info_array[ch_index][CH_STRUCT_TYPELENGTH],
-        channel_info_array[ch_index][CH_STRUCT_TYPE])
+    read_sample_blob.size_start = start+2
+    read_sample_blob.ch_index = stream[start:read_sample_blob.size_start].view(dtype=np.uint16)[0]
+    size_of_length_value = channel_info_array[read_sample_blob.ch_index][CH_STRUCT_INDEX]
+    if  size_of_length_value == 2:
+        blob_length = stream[read_sample_blob.size_start:read_sample_blob.size_start+2].view(dtype='<u2')
+    elif size_of_length_value == 4:
+        blob_length = stream[read_sample_blob.size_start:read_sample_blob.size_start+4].view(dtype='<u4')
+    end_index =  (read_sample_blob.size_start + size_of_length_value + blob_length[0])
+
+    return stream[read_sample_blob.size_start+size_of_length_value:end_index], end_index, (
+        read_sample_blob.ch_index, channel_info_array[read_sample_blob.ch_index][CH_STRUCT_TYPELENGTH],
+        channel_info_array[read_sample_blob.ch_index][CH_STRUCT_TYPE])

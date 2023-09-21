@@ -4,6 +4,7 @@ from contextlib import contextmanager
 from abc import ABC, abstractmethod
 from typing import BinaryIO
 from xml.etree import ElementTree as ET
+import numpy as np
 from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob, Channel4
 
 
@@ -146,12 +147,15 @@ class OSF4Object(OSFObjectBase):
 
     def all_samples(self):
         ch_info = convert_channels_to_array(self.channels())
-        blob_array = []
         ch_info_array = []
         index = self._magic_header['header_size'] + self._magic_header['magic_length']
-        bytes_size = self._file.seek(0, 2)
-        while index < bytes_size:
-            blob, index, chi = read_sample_blob(self._file, ch_info, index)
+
+        self._file.seek(index)
+        buffer_bytes = self._file.read(-1)
+        blob_array = np.frombuffer(buffer_bytes).view(dtype='<B')
+        index = 0
+        while index < bytes_size: 
+            blob, index, chi = read_sample_blob(data_blob, ch_info, index)
             blob_array.append(blob)
             ch_info_array.append(chi)
 
@@ -170,14 +174,18 @@ class OSF4Object(OSFObjectBase):
 
     def get_samples_by_name(self, name_list: list[str]):
         ch_info = convert_channels_to_array(self.channels() )
-        blob_array = []
         ch_info_array = []
+        blob_array = []
         ch_filter_list = [ch.index for ch in self.channels() if ch.name in name_list]
-
-        index = self._magic_header['header_size'] + self._magic_header['magic_length']
-        bytes_size = self._file.seek(0, 2)
+        index_start = self._magic_header['header_size'] + self._magic_header['magic_length']
+            
+        self._file.seek(index_start)
+        buffer_bytes = self._file.read(-1)
+        data_buffer = np.frombuffer(buffer_bytes, dtype='<B').view(dtype=np.uint8)
+        bytes_size = data_buffer.shape[0] 
+        index = 0
         while index < bytes_size:
-            blob, index, chi = read_sample_blob(self._file, ch_info, index)
+            blob, index, chi = read_sample_blob(data_buffer, ch_info, index)
             if chi[0] in ch_filter_list:
                 blob_array.append(blob)
                 ch_info_array.append(chi)
