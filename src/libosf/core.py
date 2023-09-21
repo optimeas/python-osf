@@ -166,7 +166,7 @@ class OSF4Object(OSFObjectBase):
             result_indexes.extend([ch_info_array[index][0]] * len(values))
             index = index + 1
 
-        return zip(result_values, result_timestamps, result_indexes)
+        return result_values, result_timestamps, result_indexes
 
     def get_samples_by_name(self, name_list: list[str]):
         ch_info = convert_channels_to_array(self.channels() )
@@ -193,7 +193,7 @@ class OSF4Object(OSFObjectBase):
             result_indexes.extend([ch_info_array[index][0]] * len(values))
             index = index + 1
 
-        return zip(result_values, result_timestamps, result_indexes)
+        return result_values, result_timestamps, result_indexes
 
 
 class OSF3Object(OSFObjectBase):

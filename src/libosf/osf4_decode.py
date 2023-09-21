@@ -27,6 +27,7 @@ class ChannelConversionType(Enum):
     double = 3
     string = 4
     boolean = 5
+    gpsloc = 6
 
 
 def get_conversion_type(type_string):
@@ -43,8 +44,8 @@ def get_conversion_type(type_string):
             return ChannelConversionType.string.value
         case 'bool':
             return ChannelConversionType.boolean.value
-
-
+        case 'gpslocation':
+            return ChannelConversionType.gpsloc.value
 
 
 type_length = {
@@ -59,7 +60,8 @@ type_length = {
     'uint16': 2,
     'uint8': 1,
     'bool': 1,
-    'string': 0
+    'string': 0,
+    'gpslocation': 0
 }
 
 
@@ -106,48 +108,47 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
         result['sample_start'] = 1 + 8 + 4
         result['num_samples'] = 1
         binary_data = metadata_array[9:13]
-        result['sample_length'] = bytes_to_int(binary_data)
     else:
-        print(metadata_enum)
         return [], []
 
-    value_result = []
-    ts_result = []
+    value_result:np.ndarray
+    ts_result:np.ndarray
     index = result['sample_start']
     epoch_size = result['epoch_size']
     sample_length = ch_info[CH_STRUCT_TYPELENGTH]
-    full_length = epoch_size + sample_length
-
+    full_length = sample_length + epoch_size 
+    
+    sample_index = np.intc(0)
     match ch_info[CH_STRUCT_TYPE]:
-        case 0:
-            while index < len(metadata_array):
-                ts_result.append(bytes_to_int(metadata_array[index:index + epoch_size]))
-                value_result.append(bytes_to_int(metadata_array[index + epoch_size:index + full_length]))
-                index = index + full_length
-        case 1:
-            while index < len(metadata_array):
-                ts_result.append(bytes_to_int(metadata_array[index:index + epoch_size]))
-                value_result.append(int.from_bytes(metadata_array[index + epoch_size:index + full_length], byteorder=byteorder,
-                                                   signed=False))
-                index = index + full_length
-        case 2:
-            while index < len(metadata_array):
-                ts_result.append(bytes_to_int(metadata_array[index:index + epoch_size]))
-                value_result.append(unpack('<f',metadata_array[index + epoch_size:index + full_length])[0])
-                index = index + full_length
-        case 3:
-            while index < len(metadata_array):
-                ts_result.append(bytes_to_int(metadata_array[index:index + epoch_size]))
-                value_result.append(unpack('<d',metadata_array[index + epoch_size:index + full_length])[0])
-                index = index + full_length
+        case ChannelConversionType.int.value:
+            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, full_length]))
+            value_result = full_array[1].flatten().view(dtype=f'<u{sample_length}') 
+            ts_result = full_array[0].flatten().view(dtype=f'<u8') 
+ 
+        case ChannelConversionType.uint.value:
+            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, sample_length]))
+            value_result = full_array[1].flatten().view(dtype=f'<u{sample_length}') 
+            ts_result = full_array[0].flatten().view(dtype=f'<u8') 
+        case ChannelConversionType.float.value:
+            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, sample_length]))
+            value_result = full_array[1].flatten().view(dtype=f'<f') 
+            ts_result = full_array[0].flatten().view(dtype=f'<u8') 
+        case ChannelConversionType.double.value:
+            full_array = np.frombuffer(metadata_array[index:], dtype=np.float64)
+            full_array = full_array.reshape(2, -1, order='F')
+            ts_result = full_array[0].view('<u8')
+            value_result = full_array[1]
         case 4:
-            ts_result.append(result['ts_epoch'])
-            value_result.append(metadata_array[index:].tobytes().decode())
+            ts_result = np.frombuffer(metadata_array[index:index + epoch_size], dtype=np.uint64)
+            value_result = metadata_array[index:].tobytes().decode()
         case 5:
+            ts_result = np.empty(result['num_samples'])    
+            value_result = np.empty(result['num_samples'], dtype=np.bool_)
             while index < len(metadata_array):
-                ts_result.append(bytes_to_int(metadata_array[index:index + epoch_size]))
-                value_result.append(unpack('?',metadata_array[index + epoch_size:index + full_length])[0])
+                ts_result[sample_index] = np.frombuffer(metadata_array[index:index + epoch_size], dtype=np.uint64)
+                value_result[sample_index] = np.frombuffer(metadata_array[index + epoch_size:index + full_length], dtype=np.bool_)[0]
                 index = index + full_length
+                sample_index = sample_index + 1
 
     return value_result, ts_result
 
