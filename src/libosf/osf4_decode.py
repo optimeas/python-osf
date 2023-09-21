@@ -124,13 +124,12 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
             full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, full_length]))
             value_result = full_array[1].flatten().view(dtype=f'<u{sample_length}') 
             ts_result = full_array[0].flatten().view(dtype=f'<u8') 
- 
         case ChannelConversionType.uint.value:
-            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, sample_length]))
+            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, full_length]))
             value_result = full_array[1].flatten().view(dtype=f'<u{sample_length}') 
             ts_result = full_array[0].flatten().view(dtype=f'<u8') 
         case ChannelConversionType.float.value:
-            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, sample_length]))
+            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, full_length]))
             value_result = full_array[1].flatten().view(dtype=f'<f') 
             ts_result = full_array[0].flatten().view(dtype=f'<u8') 
         case ChannelConversionType.double.value:
@@ -142,13 +141,9 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
             ts_result = np.frombuffer(metadata_array[index:index + epoch_size], dtype=np.uint64)
             value_result = metadata_array[index:].tobytes().decode()
         case 5:
-            ts_result = np.empty(result['num_samples'])    
-            value_result = np.empty(result['num_samples'], dtype=np.bool_)
-            while index < len(metadata_array):
-                ts_result[sample_index] = np.frombuffer(metadata_array[index:index + epoch_size], dtype=np.uint64)
-                value_result[sample_index] = np.frombuffer(metadata_array[index + epoch_size:index + full_length], dtype=np.bool_)[0]
-                index = index + full_length
-                sample_index = sample_index + 1
+            full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, full_length]))
+            value_result = full_array[1].flatten().view(dtype=np.bool_) 
+            ts_result = full_array[0].flatten().view(dtype='<u8') 
 
     return value_result, ts_result
 
