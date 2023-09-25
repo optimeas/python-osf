@@ -1,48 +1,38 @@
-# Generic Python Project Template
+# Python OSF Implementation 
 
-This is template for quickly setting up python projects. Clone this repository and start developing.
+Package to read in data from OSF files.
+Supported OSF version:
 
-## Checklist to getting started
+    - OSF4
 
-- Rename the project "example" at the following places:
-  - Filepath: src/example
-  - Filepath: tests/unit/test_example.py
-    - also in the contents of this file replace the import statement
-  - Inside pyproject.toml
-    - name = "example"
-    -  Under [project.scripts]
-- Replace the contents of this README.md with a project description
-- Replace the values inside the sphinx documentation configuration `docs/source/conf.py`
+## Usage
+
+See `./examples/` 
 
 ## Common commands for development tasks
 
-### Install local development installation
+### Install editable development installation
 
 ``` shell
   # install local development version
-  cd generic-python-project/
+  cd libosf/
   pip install -e .
-  # execute a example script
-  example
-  # see below for more examples for development tasks
 ```
 
 ### Run unit tests
 ``` shell
   # install dependencies
-  cd generic-python-project/
+  cd libosf/
   pip install .[tests]
   # run python unit tests
   pytest
-  # run robot acceptance tests and automation tasks
-  robot .
 ```
 
 ### Build HTML documentation
 
 ``` shell
   # install dependencies
-  cd generic-python-project/
+  cd libosf/
   pip install .[docs]
   # build the html documentation
   cd docs
