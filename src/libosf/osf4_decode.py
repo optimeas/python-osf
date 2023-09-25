@@ -69,31 +69,16 @@ def bytes_to_int(b: bytes) -> int:
     return int.from_bytes(b, byteorder=byteorder)
 
 
-@define
-class BlobInfo:
-    offset: int
-    size: int
+BC_MESSAGE_EVENT = 4 
+BC_ABS_TIMESTAMP_DATA = 8
 
 
-metadata_bin = {
-    'control': BlobInfo(0, 1),
-    'num_samples': BlobInfo(1, 4),
-    'text_sample_length': BlobInfo(9, 4)
-
-}
-
-
-class MetaInfo(Enum):
-    bcMessageEvent = 4
-    bcAbsTimeStampData = 8
-
-
-def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
+def decode_datablob(metadata_array, ch_info) -> tuple[array, array]:
     metadata_enum = metadata_array[0] - 128 if metadata_array[0] >= 128 else metadata_array[0]
     control_bit = metadata_array[0] >> 7
 
     result = dict()
-    if metadata_enum == MetaInfo.bcAbsTimeStampData.value:
+    if metadata_enum == BC_ABS_TIMESTAMP_DATA: 
         result['epoch_size'] = 8
         if control_bit == 1:
             result['sample_start'] = 1 + 4
@@ -101,7 +86,7 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
         else:
             result['sample_start'] = 1
             result['num_samples'] = 1
-    elif metadata_enum == MetaInfo.bcMessageEvent.value:
+    elif metadata_enum == BC_MESSAGE_EVENT:
         binary_data = metadata_array[8:16]
         result['ts_epoch'] = int.from_bytes(binary_data.tobytes(), byteorder=byteorder, signed=False)
         result['epoch_size'] = 0
@@ -145,7 +130,7 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
             value_result = full_array[1].flatten().view(dtype=np.bool_) 
             ts_result = full_array[0].flatten().view(dtype='<u8') 
         case _:
-            raise Exception()
+            raise Exception("Unkown channel type")
     
     return value_result, ts_result
 
@@ -165,7 +150,7 @@ def read_sample_blob(stream, channel_info_array: array, start) -> tuple[array, i
     read_sample_blob.size_start = start+2
     read_sample_blob.ch_index = stream[start:read_sample_blob.size_start].view(dtype=np.uint16)[0]
     size_of_length_value = channel_info_array[read_sample_blob.ch_index][CH_STRUCT_INDEX]
-    if  size_of_length_value == 2:
+    if size_of_length_value == 2:
         blob_length = stream[read_sample_blob.size_start:read_sample_blob.size_start+2].view(dtype='<u2')
     elif size_of_length_value == 4:
         blob_length = stream[read_sample_blob.size_start:read_sample_blob.size_start+4].view(dtype='<u4')
