@@ -21,7 +21,7 @@ def main(argv: list[str]):
 
     if path.is_file():
         with libosf.read_file(path) as f:
-            df = pd.DataFrame(np.array(f.get_samples_by_name(args.channels)))
+            df = pd.DataFrame(np.array(f.get_samples_by_name(args.channels)).T)
             df.to_csv('output.csv')
             return
     if path.is_dir():
