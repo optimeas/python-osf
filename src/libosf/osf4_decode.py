@@ -4,6 +4,7 @@ from array import array
 import numpy as np
 from struct import unpack
 from xml.etree import ElementTree as ET
+from line_profiler import profile
 
 byteorder = 'little'
 
@@ -146,16 +147,20 @@ def convert_channels_to_array(channels: list[Channel4]) -> np.ndarray:
     return result
 
 
-def read_sample_blob(stream, channel_info_array: array, start) -> tuple[array, int, tuple]:
-    read_sample_blob.size_start = start+2
-    read_sample_blob.ch_index = stream[start:read_sample_blob.size_start].view(dtype=np.uint16)[0]
-    size_of_length_value = channel_info_array[read_sample_blob.ch_index][CH_STRUCT_INDEX]
+@profile
+def read_sample_blob(stream, channel_info_array: array, start, filter_array) -> tuple[array, int, tuple]:
+    size_start = start+2
+    ch_index = stream[start:size_start].view(dtype=np.uint16)[0]
+    size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
     if size_of_length_value == 2:
-        blob_length = stream[read_sample_blob.size_start:read_sample_blob.size_start+2].view(dtype='<u2')
+        blob_length = stream[size_start:size_start+2].view(dtype='<u2')
     elif size_of_length_value == 4:
-        blob_length = stream[read_sample_blob.size_start:read_sample_blob.size_start+4].view(dtype='<u4')
-    end_index =  (read_sample_blob.size_start + size_of_length_value + blob_length[0])
+        blob_length = stream[size_start:size_start+4].view(dtype='<u4')
+    end_index =  (size_start + size_of_length_value + blob_length[0])
 
-    return stream[read_sample_blob.size_start+size_of_length_value:end_index], end_index, (
-        read_sample_blob.ch_index, channel_info_array[read_sample_blob.ch_index][CH_STRUCT_TYPELENGTH],
-        channel_info_array[read_sample_blob.ch_index][CH_STRUCT_TYPE])
+    if ch_index not in filter_array:
+        return np.empty((0)), end_index, ()
+
+    return stream[size_start+size_of_length_value:end_index], end_index, (
+        ch_index, channel_info_array[ch_index][CH_STRUCT_TYPELENGTH],
+        channel_info_array[ch_index][CH_STRUCT_TYPE])

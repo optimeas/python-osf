@@ -179,17 +179,16 @@ class OSF4Object(OSFObjectBase):
         ch_info = convert_channels_to_array(self.channels() )
         ch_info_array = []
         blob_array = []
-        ch_filter_list = [ch.index for ch in self.channels() if ch.name in name_list]
+        ch_filter_list = np.array([ch.index for ch in self.channels() if ch.name in name_list], dtype=np.uint16)
         index_start = self._magic_header['header_size'] + self._magic_header['magic_length']
-            
         self._file.seek(index_start)
         buffer_bytes = self._file.read(-1)
-        data_buffer = np.frombuffer(buffer_bytes, dtype='<B').view(dtype=np.uint8)
+        data_buffer = np.frombuffer(buffer_bytes, dtype='B').view(dtype=np.uint8)
         bytes_size = data_buffer.shape[0] 
         index = 0
         while index < bytes_size:
-            blob, index, chi = read_sample_blob(data_buffer, ch_info, index)
-            if chi[0] in ch_filter_list:
+            blob, index, chi = read_sample_blob(data_buffer, ch_info, index, ch_filter_list)
+            if blob.shape[0] != 0:
                 blob_array.append(blob)
                 ch_info_array.append(chi)
 
