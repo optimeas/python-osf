@@ -4,6 +4,7 @@ from argparse import ArgumentParser
 import pandas as pd
 from pathlib import Path
 import sys
+import os
 
 
 def main(argv: list[str]):
@@ -26,17 +27,13 @@ def main(argv: list[str]):
     if path.is_dir():
         result_array = None
         for child in path.iterdir():
-            print(child)
             with libosf.read_file(child) as f:
-                if result_array is None:
-                    result_array = np.array(f.get_samples_by_name(args.channels)).T
+                result_array = pd.DataFrame(np.array(f.get_samples_by_name(args.channels)).T)
 
-                result_array = np.concatenate((result_array, np.array(f.get_samples_by_name(args.channels)).T))
-        
-        pd.DataFrame(result_array).to_csv('output.csv')
+            result_array.to_csv(f'{child.with_suffix("").with_suffix(".csv").absolute()}')
         
     else:
-        print('Can not read in anything other than a file')
+        print('Can not read in anything other than a file or directory')
 
 if __name__ == '__main__':
     main(sys.argv)

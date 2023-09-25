@@ -144,7 +144,9 @@ def decode_datablob(metadata_array: array, ch_info) -> tuple[array, array]:
             full_array = np.hsplit(np.frombuffer(metadata_array[index:], dtype='B').reshape(-1, full_length), np.array([epoch_size, full_length]))
             value_result = full_array[1].flatten().view(dtype=np.bool_) 
             ts_result = full_array[0].flatten().view(dtype='<u8') 
-
+        case _:
+            raise Exception()
+    
     return value_result, ts_result
 
 

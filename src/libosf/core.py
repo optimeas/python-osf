@@ -2,6 +2,9 @@ from enum import Enum
 from attrs import define, field
 from contextlib import contextmanager
 from abc import ABC, abstractmethod
+import gzip
+import magic
+from pathlib import Path
 from typing import BinaryIO
 from xml.etree import ElementTree as ET
 import numpy as np
@@ -218,7 +221,10 @@ class OSFUNKOWNObject(OSFObjectBase):
 
 @contextmanager
 def read_file(osf_file: str):
-    file = open(osf_file, 'rb')
+    if Path(osf_file).suffix == '.osfz':
+        file = gzip.open(osf_file, mode='rb')
+    else:
+        file = open(osf_file, 'rb')
 
     try:
         header = get_magic_header(file)
