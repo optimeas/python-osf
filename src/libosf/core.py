@@ -148,33 +148,13 @@ class OSF4Object(OSFObjectBase):
         return ET.fromstring(data)
 
     def all_samples(self):
-        ch_info = convert_channels_to_array(self.channels())
-        ch_info_array = []
-        index = self._magic_header['header_size'] + self._magic_header['magic_length']
+        """
+        function implementation was removed. Is a whole chanel readout really a use case?
+        """
+        ...
 
-        self._file.seek(index)
-        buffer_bytes = self._file.read(-1)
-        blob_array = np.frombuffer(buffer_bytes).view(dtype='<B')
-        index = 0
-        while index < bytes_size: 
-            blob, index, chi = read_sample_blob(data_blob, ch_info, index)
-            blob_array.append(blob)
-            ch_info_array.append(chi)
 
-        index = 0
-        result_indexes = []
-        result_values = []
-        result_timestamps = []
-        for blob in blob_array:
-            values, timestamps = decode_datablob(blob, ch_info_array[index])
-            result_values.extend(values)
-            result_timestamps.extend(timestamps)
-            result_indexes.extend([ch_info_array[index][0]] * len(values))
-            index = index + 1
-
-        return result_values, result_timestamps, result_indexes
-
-    def get_samples_by_name(self, name_list: list[str]):
+    def get_samples(self, name_list: list[str]):
         ch_info = convert_channels_to_array(self.channels() )
         ch_info_array = []
         blob_array = []

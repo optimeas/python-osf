@@ -27,7 +27,7 @@ def main(argv: list[str]):
 
     if path.is_file():
         with libosf.read_file(path) as f:
-            samples = f.get_samples_by_name(args.channels)
+            samples = f.get_samples(args.channels)
             data = {
                     'ts_n': samples[0],
                     'value': samples[1],
@@ -39,7 +39,7 @@ def main(argv: list[str]):
     if path.is_dir():
         result_array = None
         for child in path.iterdir():
-            samples = f.get_samples_by_name(args.channels)
+            samples = f.get_samples(args.channels)
             data = {
                     'ts_n': samples[0],
                     'value': samples[1],
