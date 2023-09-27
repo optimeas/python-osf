@@ -3,7 +3,6 @@ from attrs import define, field
 from contextlib import contextmanager
 from abc import ABC, abstractmethod
 import gzip
-import magic
 from pathlib import Path
 from typing import BinaryIO
 from xml.etree import ElementTree as ET
