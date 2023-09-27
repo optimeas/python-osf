@@ -206,18 +206,6 @@ class OSF4Object(OSFObjectBase):
         return result_values, result_timestamps, result_indexes
 
 
-class OSF3Object(OSFObjectBase):
-    @property
-    def version_supported(self):
-        return False
-
-
-class OSFUNKOWNObject(OSFObjectBase):
-    @property
-    def version_supported(self):
-        return False
-
-
 @contextmanager
 def read_file(osf_file: str):
     if Path(osf_file).suffix == '.osfz':
@@ -227,15 +215,13 @@ def read_file(osf_file: str):
 
     try:
         header = get_magic_header(file)
-
         osf_object: OSFObjectBase = None
         match header['osf_format']:
-            case OSFFormat.OSF3:
-                osf_object = OSF3Object(file, header)
             case OSFFormat.OSF4:
                 osf_object = OSF4Object(file, header)
-            case OSFFormat.UNKNOWN:
-                osf_object = OSFUNKOWNObject(file, header)
+            case OSFFormat.UNKNOWN | OSFFormat.OSF3 | _:
+                raise RuntimeError(f'"{header["osf_format"].value}" format of file {osf_file} not supported')
+
 
         yield osf_object
     finally:

@@ -1,22 +1,24 @@
 import libosf as osf
 from libosf import OSFFormat
 from pathlib import Path
+import pytest
 
 tests_directory = Path(__file__).parent.parent
 osf4_file = tests_directory.joinpath('data/osf4_ruvvi.osf')
 osf3_file = tests_directory.joinpath('data/osf3.osf')
 trash_file =  tests_directory.joinpath('data/trash.txt')
 
+
 def test_osf_version_open():
     with osf.read_file(osf4_file) as file:
         assert file.osf_version == OSFFormat.OSF4
         assert file.version_supported is True
-    with osf.read_file(osf3_file) as file:
-        assert file.osf_version == OSFFormat.OSF3
-        assert file.version_supported is False
-    with osf.read_file(trash_file) as file:
-        assert file.osf_version == OSFFormat.UNKNOWN
-        assert file.version_supported is False
+    with pytest.raises(RuntimeError):
+        with osf.read_file(osf3_file):
+            ...
+    with pytest.raises(RuntimeError):
+        with osf.read_file(trash_file):
+            ...
 
 
 def test_qload_channel():
