@@ -1,10 +1,7 @@
 from enum import Enum
 from attrs import define
-from array import array
 import numpy as np
-from struct import unpack
 from xml.etree import ElementTree as ET
-from line_profiler import profile
 
 byteorder = 'little'
 
@@ -74,7 +71,7 @@ BC_MESSAGE_EVENT = 4
 BC_ABS_TIMESTAMP_DATA = 8
 
 
-def decode_datablob(metadata_array, ch_info) -> tuple[array, array]:
+def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
     metadata_enum = metadata_array[0] - 128 if metadata_array[0] >= 128 else metadata_array[0]
     control_bit = metadata_array[0] >> 7
 
@@ -147,8 +144,7 @@ def convert_channels_to_array(channels: list[Channel4]) -> np.ndarray:
     return result
 
 
-@profile
-def read_sample_blob(stream, channel_info_array: array, start, filter_array) -> tuple[array, int, tuple]:
+def read_sample_blob(stream, channel_info_array: np.ndarray, start, filter_array) -> tuple[np.ndarray, int, tuple]:
     size_start = start+2
     ch_index = stream[start:size_start].view(dtype=np.uint16)[0]
     size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
