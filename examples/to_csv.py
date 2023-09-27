@@ -21,16 +21,27 @@ def main(argv: list[str]):
 
     if path.is_file():
         with libosf.read_file(path) as f:
-            df = pd.DataFrame(np.array(f.get_samples_by_name(args.channels)).T)
+            samples = f.get_samples_by_name(args.channels)
+            data = {
+                    'ts_n': samples[0],
+                    'value': samples[1],
+                    'ch_index': samples[2]
+            }
+            df = pd.DataFrame(data=data)
             df.to_csv('output.csv')
             return
     if path.is_dir():
         result_array = None
         for child in path.iterdir():
-            with libosf.read_file(child) as f:
-                result_array = pd.DataFrame(np.array(f.get_samples_by_name(args.channels)).T)
+            samples = f.get_samples_by_name(args.channels)
+            data = {
+                    'ts_n': samples[0],
+                    'value': samples[1],
+                    'ch_index': samples[2]
+            }
+            df = pd.DataFrame(data=data)
 
-            result_array.to_csv(f'{child.with_suffix("").with_suffix(".csv").absolute()}')
+        df.to_csv(f'{child.with_suffix("").with_suffix(".csv").absolute()}')
         
     else:
         print('Can not read in anything other than a file or directory')
