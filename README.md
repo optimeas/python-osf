@@ -4,7 +4,6 @@ Package to read in data from OSF files.
 Supported OSF versions:
 
 - OSF4
-
 ## Installation
 
 Setting up a virutal environment and installing the current master:
@@ -28,7 +27,7 @@ from libosf import read_file
 channels = ['CAN_1', 'CAN_2']
 
 with read_file('example.osf') as file:
-    samples = file.get_samples_by_name(args.channels)
+    samples = file.get_samples_by_name(channels)
     data = {
             'ts_n': samples[0],
             'value': samples[1],
@@ -37,7 +36,20 @@ with read_file('example.osf') as file:
     df = pd.DataFrame(data=data)
 ```
 
+
+## Examples 
+
 More examples showing how to use this package combined with numpy, pandas, matplotlib and more can be found under `./examples/`. 
+
+Install dependencies before running:
+
+```bash
+pip install .[examples]
+# generates an csv file with CAN_1 samples at python-osf4/output.csv
+python examples/to_csv.py -i input.osf -c CAN_1
+```
+
+
 
 ## Common commands for development tasks
 
