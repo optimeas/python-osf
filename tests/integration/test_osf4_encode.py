@@ -5,6 +5,7 @@ from pytest import fixture
 from xml.etree import ElementTree as ET
 from libosf.osf4_decode import Channel4
 from array import array
+import numpy as np
 from io import BytesIO
 
 
@@ -65,33 +66,28 @@ def blob_data() -> bytes:
 
 
 def test_blob_reading(channel_list, blob_data):
-    stream = BytesIO(blob_data +
-                     (create_blob(2, 2, 32768) * 32768)
-                     )
+    blob_data = np.frombuffer((blob_data + create_blob(2, 2, 32768) * 32768), dtype=np.uint8)
     ch_info = convert_channels_to_array(channel_list)
 
     blob_array = []
     index = 0
-    bytes_size = stream.seek(0, 2)
-    while index < bytes_size:
-        blob, index, chi = read_sample_blob(stream, ch_info, index)
+    while index < blob_data.shape[0]:
+        blob, index, chi = read_sample_blob(blob_data, ch_info, index, [])
         blob_array.append(blob)
-
-    print(bytes_size)
 
 
 def test_encode_datablob(channel_list, blob_data):
-    stream = BytesIO(blob_data * 64)
+    blob_data = np.frombuffer(blob_data * 64, dtype=np.uint8)
     ch_info = convert_channels_to_array(channel_list)
 
     blob_array = []
     ch_info_array = []
     index = 0
-    bytes_size = stream.seek(0, 2)
-    while index < bytes_size:
-        blob, index, chi = read_sample_blob(stream, ch_info, index)
-        blob_array.append(blob)
-        ch_info_array.append(chi)
+    while index < blob_data.shape[0]:
+        blob, index, chi = read_sample_blob(blob_data, ch_info, index, [])
+        if blob.shape[0] != 0:
+            blob_array.append(blob)
+            ch_info_array.append(chi)
 
     index = 0
     result_values = []
@@ -101,10 +97,3 @@ def test_encode_datablob(channel_list, blob_data):
         result_values.extend(values)
         result_timestamps.extend(timestamps)
         index = index + 1
-
-    print(f'{len(result_values):_}')
-    print(result_values[:20])
-    print(f'{len(result_timestamps):_}')
-    print(result_timestamps[:20])
-
-    print(f'Bytes Decoded: {bytes_size:_}')
