@@ -23,11 +23,12 @@ Constructing a dataframe with the samples of two Channels of a osf file:
 
 ```python
 from libosf import read_file
+import pandas as pd
 
 channels = ['CAN_1', 'CAN_2']
 
 with read_file('example.osf') as file:
-    samples = file.get_samples_by_name(channels)
+    samples = file.get_samples(channels)
     data = {
             'ts_n': samples[0],
             'value': samples[1],
@@ -48,9 +49,6 @@ pip install .[examples]
 # generates an csv file with CAN_1 samples at python-osf4/output.csv
 python examples/to_csv.py -i input.osf -c CAN_1
 ```
-
-
-
 ## Common commands for development tasks
 
 ### Install editable development installation
