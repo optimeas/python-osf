@@ -6,6 +6,8 @@ from pathlib import Path
 import sys
 import os
 
+EXAMPLE_DIR = Path(__file__).absolute().parent
+OSF_FILE = EXAMPLE_DIR.joinpath("example.osf")
 
 def main(argv: list[str]):
     parser = ArgumentParser('numpy to csv example', description='pass an file or directory to dump to a csv file')
