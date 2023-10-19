@@ -1,4 +1,3 @@
-import numpy as np
 import libosf
 from argparse import ArgumentParser
 import pandas as pd
@@ -28,18 +27,15 @@ def main(argv: list[str]):
         return
 
     path = Path(args.input)
-    print(path)
 
     if path.is_file():
         with libosf.read_file(path) as osf_file:
-            samples = osf_file.get_samples(args.channels)
-            data = {"ts_n": samples[0], "value": samples[1]}
-            df = pd.DataFrame(data=data)
+            samples = osf_file.get_samples(args.channels, as_class=True)
+            df = samples.make_column_based()
             with open(
                 f"{path.with_suffix('').with_suffix('.csv').absolute()}", "w+"
             ) as f:
-                f.write("This is a great line\n")
-                df.to_csv(f, sep=";")
+                df.to_csv(f, sep=";", index_label="index")
     elif path.is_dir():
         for child in path.iterdir():
             with libosf.read_file(path) as osf_file:

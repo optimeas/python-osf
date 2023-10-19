@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import BinaryIO
 from xml.etree import ElementTree as ET
 import numpy as np
+from pandas import DataFrame
+import pandas as pd
 from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob, Channel
 
 
@@ -55,7 +57,6 @@ def get_magic_header(file: BinaryIO) -> dict:
         'header_size': int(size_string),
         'magic_length': len(first_line) + 1
     }
-
 
 @define
 class Metadata:
@@ -122,6 +123,27 @@ def construct_metadata(element: ET.Element) -> Metadata:
     return metadata
 
 
+class RawData:
+    def __init__(self, data: tuple[list[np.ndarray], list[np.ndarray], list[np.ndarray]], channels: list[Channel]):
+        self._data = data
+        self._channels = channels 
+
+    def make_column_based(self) -> DataFrame:
+        data = self._data
+        frame_data = {"ts_n": data[1], "value": data[0], "ch": data[2]}
+        df = DataFrame(data=frame_data)
+        result = None
+        for ch in self._channels:
+            tmp = df[df["ch"] == ch.index][["ts_n", "value"]] \
+                    .rename(columns={"ts_n":f"{ch.name}.x", "value": f"{ch.name}.y"})
+            if result is None: 
+                result = tmp
+            else:
+                result = pd.concat([result, tmp], axis=1)
+        return result 
+
+
+
 class OSF4Object(OSFObjectBase):
     """
     this is a docstring
@@ -148,17 +170,14 @@ class OSF4Object(OSFObjectBase):
         data = self._file.read(self._magic_header['header_size'])
         return ET.fromstring(data)
 
-    def all_samples(self):
+    def get_samples(self, name_list: list[str], as_class=False):
         """
-        function implementation was removed. Is a whole chanel readout really a use case?
         """
-        ...
-
-    def get_samples(self, name_list: list[str]):
-        ch_info = convert_channels_to_array(self.channels() )
+        ch_info = convert_channels_to_array(self.channels())
         ch_info_array = []
         blob_array = []
-        ch_filter_list = np.array([ch.index for ch in self.channels() if ch.name in name_list], dtype=np.uint16)
+        ch_list = [ch for ch in self.channels() if ch.name in name_list]
+        ch_filter_list = np.array([ch.index for ch in ch_list], dtype=np.uint16)
         index_start = self._magic_header['header_size'] + self._magic_header['magic_length']
         self._file.seek(index_start)
         buffer_bytes = self._file.read(-1)
@@ -181,9 +200,10 @@ class OSF4Object(OSFObjectBase):
             result_timestamps.extend(timestamps)
             result_indexes.extend([ch_info_array[index][0]] * len(values))
             index = index + 1
-
-        return result_values, result_timestamps, result_indexes
-
+        if as_class:
+            return RawData((result_values, result_timestamps, result_indexes), ch_list)
+        else:
+            return result_values, result_timestamps, result_indexes
 
 @contextmanager
 def read_file(osf_file: str):
