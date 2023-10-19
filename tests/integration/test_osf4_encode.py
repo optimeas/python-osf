@@ -3,7 +3,7 @@ from pprint import pprint
 from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob
 from pytest import fixture
 from xml.etree import ElementTree as ET
-from libosf.osf4_decode import Channel4
+from libosf.osf4_decode import Channel
 from array import array
 import numpy as np
 from io import BytesIO
@@ -47,7 +47,7 @@ def channel_list():
     """
     elements = ET.fromstring(xml).findall('.//channel')
 
-    return [Channel4(element) for element in elements]
+    return [Channel(element) for element in elements]
 
 
 def create_blob(index: int, size_of_length_value: int, blob_size: int) -> bytes:

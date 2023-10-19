@@ -9,7 +9,7 @@ CH_STRUCT_TYPELENGTH = 1
 CH_STRUCT_TYPE = 2
 
 
-class Channel4:
+class Channel:
     def __init__(self, element: ET.Element):
         attr = element.attrib
         self.name = attr["name"]
@@ -160,7 +160,7 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
     return value_result, ts_result
 
 
-def convert_channels_to_array(channels: list[Channel4]) -> np.ndarray:
+def convert_channels_to_array(channels: list[Channel]) -> np.ndarray:
     result = np.empty((len(channels) + 1, 3), dtype=np.int32)
 
     for ch in channels:

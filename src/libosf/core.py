@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import BinaryIO
 from xml.etree import ElementTree as ET
 import numpy as np
-from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob, Channel4
+from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob, Channel
 
 
 class OSFFormat(str, Enum):
@@ -42,7 +42,7 @@ def get_magic_header(file: BinaryIO) -> dict:
     first_line = read_until(file, b'\n').decode()
 
     format_string: str
-    size_string: str
+    size_string: int
     try:
         format_string, size_string = first_line.split(' ')
     except ValueError:
@@ -55,6 +55,16 @@ def get_magic_header(file: BinaryIO) -> dict:
         'header_size': int(size_string),
         'magic_length': len(first_line) + 1
     }
+
+
+@define
+class Metadata:
+    creator = field(default='')
+    created_utc = field(default='')
+    tag = field(default='')
+    namespacesep = field(default='')
+    channel_count = field(default=0)
+    infos = field(default={})
 
 
 class OSFObjectBase(ABC):
@@ -75,22 +85,13 @@ class OSFObjectBase(ABC):
     def version_supported(self) -> bool:
         ...
 
+    @abstractmethod
+    def channels(self) -> list[Channel]:
+        ...
 
-""""
-FIXME: 
-Could this the metadata be autoconstructed? Perhaps only define defaults for the fields and then construct if its 
-found inside the xml elements attributes?
-"""
-
-
-@define
-class Metadata:
-    creator = field(default='')
-    created_utc = field(default='')
-    tag = field(default='')
-    namespacesep = field(default='')
-    channel_count = field(default=0)
-    infos = field(default={})
+    @abstractmethod
+    def metadata(self) -> Metadata:
+        ...
 
 
 def construct_metadata(element: ET.Element) -> Metadata:
@@ -134,10 +135,10 @@ class OSF4Object(OSFObjectBase):
     def version_supported(self) -> bool:
         return True
 
-    def channels(self) -> list[Channel4]:
+    def channels(self) -> list[Channel]:
         elements = self._xml_header.findall('.//channel')
 
-        return [Channel4(element) for element in elements]
+        return [Channel(element) for element in elements]
 
     def metadata(self):
         return construct_metadata(self._xml_header)
@@ -152,7 +153,6 @@ class OSF4Object(OSFObjectBase):
         function implementation was removed. Is a whole chanel readout really a use case?
         """
         ...
-
 
     def get_samples(self, name_list: list[str]):
         ch_info = convert_channels_to_array(self.channels() )
