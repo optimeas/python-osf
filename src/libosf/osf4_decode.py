@@ -1,4 +1,5 @@
 from enum import Enum
+import sys
 import numpy as np
 from xml.etree import ElementTree as ET
 
@@ -144,7 +145,7 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             value_result = full_array[1]
         case 4:
             ts_result = (result["ts_epoch"],)
-            value_result = metadata_array[index:].tobytes().decode()
+            value_result = [metadata_array[index:].tobytes().decode()]
         case 5:
             full_array = np.hsplit(
                 np.frombuffer(metadata_array[index:], dtype="B").reshape(
@@ -155,7 +156,8 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             value_result = full_array[1].flatten().view(dtype=np.bool_)
             ts_result = full_array[0].flatten().view(dtype="<u8")
         case _:
-            raise Exception("Unkown channel type")
+            print("Unable to decode blob: unsupported channel type", file=sys.stderr)
+            return [], []
 
     return value_result, ts_result
 
