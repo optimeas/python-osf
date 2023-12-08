@@ -9,6 +9,7 @@ from xml.etree import ElementTree as ET
 import numpy as np
 from pandas import DataFrame
 import pandas as pd
+from typing import Tuple
 from libosf.osf4_decode import read_sample_blob, convert_channels_to_array, decode_datablob, Channel
 
 
@@ -23,6 +24,10 @@ class Location:
     latitude = field(default=0.0)
     longitude = field(default=0.0)
     altitude = field(default=0.0)
+
+    @classmethod
+    def from_tuple(cls, t: Tuple[float,float,float]): 
+        return cls(t[0], t[1], t[2])
 
 
 def osf_format_from_string(format_string) -> OSFFormat:

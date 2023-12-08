@@ -21,12 +21,13 @@ def main():
             print(f"{i}: unit: {c.unit}")
             print(f"{i}: type: {c.type}")
 
-
-            samples:None
+            samples: None
             if c.type == "gpslocation":
-                v,t,i = f.get_samples([c.name])
-                v = [ Location(val) for val in v]
-                print(f"{i}: length: {len(t)}")
+                v, t, i = f.get_samples([c.name])
+                v = [Location.from_tuple(val) for val in v]
+                for i, (ts, loc) in enumerate(zip(t,v)):
+                    ns = np.datetime64(int(ts), "ns")
+                    print(f"{i}: ts= {ns} | y= {loc}")
             else:
                 samples: np.ndarray = np.array(f.get_samples([c.name]))
 
