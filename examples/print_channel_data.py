@@ -28,6 +28,7 @@ def main():
                 for i, (ts, loc) in enumerate(zip(t,v)):
                     ns = np.datetime64(int(ts), "ns")
                     print(f"{i}: ts= {ns} | y= {loc}")
+                    # hint: use loc.latitude for example to process specific coordinates
             else:
                 samples: np.ndarray = np.array(f.get_samples([c.name]))
 
