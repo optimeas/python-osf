@@ -1,4 +1,4 @@
-from libosf import read_file, Channel
+from libosf import read_file, Channel, Location
 from pathlib import Path
 import numpy as np
 
@@ -21,14 +21,22 @@ def main():
             print(f"{i}: unit: {c.unit}")
             print(f"{i}: type: {c.type}")
 
-            samples: np.ndarray = np.array(f.get_samples([c.name]))
-            print(f"{i}: length: {samples.shape[1]}")
-            print("")
 
-            # print channel values
-            for x in range(samples.shape[1]):
-                ns = np.datetime64(int(samples[1][x]), "ns")
-                print(f"{x}: ts= {ns} | y= {samples[0][x]}")
+            samples:None
+            if c.type == "gpslocation":
+                v,t,i = f.get_samples([c.name])
+                v = [ Location(val) for val in v]
+                print(f"{i}: length: {len(t)}")
+            else:
+                samples: np.ndarray = np.array(f.get_samples([c.name]))
+
+                print(f"{i}: length: {samples.shape[1]}")
+                print("")
+
+                # print channel values
+                for x in range(samples.shape[1]):
+                    ns = np.datetime64(int(samples[1][x]), "ns")
+                    print(f"{x}: ts= {ns} | y= {samples[0][x]}")
 
 
 if __name__ == "__main__":

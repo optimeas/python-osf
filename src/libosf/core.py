@@ -18,6 +18,13 @@ class OSFFormat(str, Enum):
     UNKNOWN = 'unknown'
 
 
+@define
+class Location:
+    latitude = field(default=0.0)
+    longitude = field(default=0.0)
+    altitude = field(default=0.0)
+
+
 def osf_format_from_string(format_string) -> OSFFormat:
     if format_string in ['OCEAN_STREAM_FORMAT4', 'OSF4']:
         return OSFFormat.OSF4

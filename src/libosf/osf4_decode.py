@@ -61,7 +61,7 @@ type_length = {
     "uint8": 1,
     "bool": 1,
     "string": 0,
-    "gpslocation": 0,
+    "gpslocation": 8*3
 }
 
 
@@ -155,6 +155,16 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             )
             value_result = full_array[1].flatten().view(dtype=np.bool_)
             ts_result = full_array[0].flatten().view(dtype="<u8")
+        case 6:
+            full_array = np.hsplit(
+                np.frombuffer(metadata_array[index:], dtype="B").reshape(
+                    -1, full_length
+                ),
+                np.array([epoch_size, full_length]),
+            )
+            ts_result = full_array[0].view("<u8")
+            value_result = full_array[1].reshape(-1,3,8).view(dtype=np.float64)
+
         case _:
             print("Unable to decode blob: unsupported channel type", file=sys.stderr)
             return [], []
