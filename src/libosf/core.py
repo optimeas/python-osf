@@ -27,7 +27,7 @@ class Location:
 
     @classmethod
     def from_tuple(cls, t: Tuple[float,float,float]): 
-        return cls(t[0], t[1], t[2])
+        return cls(t[0][0], t[1][0], t[2][0])
 
 
 def osf_format_from_string(format_string) -> OSFFormat:
