@@ -162,9 +162,8 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
                 ),
                 np.array([epoch_size, full_length]),
             )
-            ts_result = full_array[0].view("<u8")
+            ts_result = full_array[0].view("<u8")[0]
             value_result = full_array[1].reshape(-1,3,8).view(dtype=np.float64)
-
         case _:
             print("Unable to decode blob: unsupported channel type", file=sys.stderr)
             return [], []
