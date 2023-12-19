@@ -11,7 +11,7 @@ Setting up a virutal environment and installing the current master:
 Windows:
 
 ```powershell
-cd python-osf4
+cd python-osf
 python -m venv venv
 .\venv\Scripts\activate
 pip install .
@@ -20,7 +20,7 @@ pip install .
 Linux:
 
 ```bash
-cd python-osf4
+cd python-osf
 python -m venv venv
 . .\venv\bin\activate
 pip install .
