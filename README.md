@@ -17,6 +17,15 @@ python -m venv venv
 pip install .
 ```
 
+Linux:
+
+```bash
+cd python-osf4
+python -m venv venv
+. .\venv\bin\activate
+pip install .
+```
+
 ## Usage
 
 Constructing a dataframe with the samples of two Channels of a osf file:
