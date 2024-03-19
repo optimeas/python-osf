@@ -6,7 +6,7 @@ Supported OSF versions:
 - OSF4
 ## Installation
 
-Setting up a virutal environment and installing the current master:
+Setting up a virtual environment and installing the current master:
 
 Windows:
 
@@ -26,7 +26,7 @@ pip install .
 
 ## Usage
 
-Constructing a dataframe with the samples of two channels of a osf file:
+Constructing a dataframe with the samples of two channels of an OSF file:
 
 ```python
 from libosf import read_file
