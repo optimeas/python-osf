@@ -9,7 +9,7 @@ authors = [{name="Paul Jena", email="paul.jena@optimeas.de" }]
 description = "Open Stream Format 4 programming utilites"
 readme = "README.md"
 dependencies = ["numpy", "attrs", "pandas"]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.optional-dependencies]
 tests = ["pytest", "robotframework"]
