@@ -91,7 +91,7 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             result["sample_start"] = 1
             result["num_samples"] = 1
     elif metadata_enum == BC_MESSAGE_EVENT:
-        binary_data = metadata_array[8:16]
+        binary_data = metadata_array[1:9]
         result["ts_epoch"] = int.from_bytes(
             binary_data.tobytes(), byteorder=byteorder, signed=False
         )
