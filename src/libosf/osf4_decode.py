@@ -185,6 +185,7 @@ def convert_channels_to_array(channels: list[Channel]) -> np.ndarray:
 def read_sample_blob(
     stream, channel_info_array: np.ndarray, start, filter_array
 ) -> tuple[np.ndarray, int, tuple]:
+    blob_length = []
     size_start = start + 2
     ch_index = stream[start:size_start].view(dtype=np.uint16)[0]
     size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
@@ -192,8 +193,12 @@ def read_sample_blob(
         blob_length = stream[size_start: size_start + 2].view(dtype="<u2")
     elif size_of_length_value == 4:
         blob_length = stream[size_start: size_start + 4].view(dtype="<u4")
-    end_index = size_start + size_of_length_value + blob_length[0]
 
+    _length = len(blob_length)
+    if _length <= 0:
+        return np.empty((0)), len(stream), ()
+
+    end_index = size_start + size_of_length_value + blob_length[0]
     if ch_index not in filter_array:
         return np.empty((0)), end_index, ()
 
