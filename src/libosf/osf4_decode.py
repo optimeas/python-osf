@@ -187,11 +187,19 @@ def read_sample_blob(
 ) -> tuple[np.ndarray, int, tuple]:
     blob_length = []
     size_start = start + 2
+    if len(stream) < (size_start):
+        return np.empty((0)), len(stream), ()
+
     ch_index = stream[start:size_start].view(dtype=np.uint16)[0]
     size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
+
     if size_of_length_value == 2:
+        if len(stream) < (size_start + 2):
+            return np.empty((0)), len(stream), ()
         blob_length = stream[size_start: size_start + 2].view(dtype="<u2")
     elif size_of_length_value == 4:
+        if len(stream) < (size_start + 4):
+            return np.empty((0)), len(stream), ()
         blob_length = stream[size_start: size_start + 4].view(dtype="<u4")
 
     _length = len(blob_length)
