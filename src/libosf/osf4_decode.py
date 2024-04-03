@@ -191,8 +191,12 @@ def read_sample_blob(
         return np.empty((0)), len(stream), ()
 
     ch_index = stream[start:size_start].view(dtype=np.uint16)[0]
-    size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
 
+    channel_count = len(channel_info_array)
+    if channel_count < ch_index:
+        return np.empty((0)), len(stream), ()
+
+    size_of_length_value = channel_info_array[ch_index][CH_STRUCT_INDEX]
     if size_of_length_value == 2:
         if len(stream) < (size_start + 2):
             return np.empty((0)), len(stream), ()
