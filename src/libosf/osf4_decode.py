@@ -109,6 +109,17 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
     sample_length = ch_info[CH_STRUCT_TYPELENGTH]
     full_length = sample_length + epoch_size
 
+    if ch_info[CH_STRUCT_TYPE] != 4: # not equal string type
+        samples_binary = metadata_array[index:]
+        samples_binary = np.resize(samples_binary, (int(samples_binary.shape[0] / full_length) * full_length,))
+        try:
+            reshaped_data = np.frombuffer(samples_binary, dtype="B").reshape(-1, full_length)
+        except ValueError:
+            return [], []
+        full_array = np.hsplit(
+            reshaped_data,
+            np.array([epoch_size, full_length]))
+
     sample_index = np.intc(0)
     match ch_info[CH_STRUCT_TYPE]:
         case ChannelConversionType.int.value:
@@ -121,21 +132,9 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             value_result = full_array[1].flatten().view(dtype=f"<u{sample_length}")
             ts_result = full_array[0].flatten().view(dtype="<u8")
         case ChannelConversionType.uint.value:
-            full_array = np.hsplit(
-                np.frombuffer(metadata_array[index:], dtype="B").reshape(
-                    -1, full_length
-                ),
-                np.array([epoch_size, full_length]),
-            )
             value_result = full_array[1].flatten().view(dtype=f"<u{sample_length}")
             ts_result = full_array[0].flatten().view(dtype="<u8")
         case ChannelConversionType.float.value:
-            full_array = np.hsplit(
-                np.frombuffer(metadata_array[index:], dtype="B").reshape(
-                    -1, full_length
-                ),
-                np.array([epoch_size, full_length]),
-            )
             value_result = full_array[1].flatten().view(dtype="<f")
             ts_result = full_array[0].flatten().view(dtype="<u8")
         case ChannelConversionType.double.value:
