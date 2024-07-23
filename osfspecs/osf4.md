@@ -12,7 +12,7 @@ Last change date: 10.2023
 
 ## Übersicht
 
-In Messsystemen entstehen Daten verschiedenster Datentypen und Aufzeichnungsformate aus unterschiedlichsten Quellen. Angefangen bei physikalischen Messgrößen wie Drück, Schwingungen oder Temperaturen, über elektrische Größen, bis hin zu beliebigen binären Datenblöcken wie zum Beispiel Bildern. Diese Größen entstehen über einer Zeitachse. Entweder in festen Zeitintervallen oder Abtastraten, oder je nach dem wie sie sich verändern, mit individuellen Zeitstempeln.
+In Messsystemen entstehen Daten verschiedenster Datentypen und Aufzeichnungsformate aus unterschiedlichsten Quellen. Angefangen bei physikalischen Messgrößen wie Drücke, Schwingungen oder Temperaturen, über elektrische Größen, bis hin zu beliebigen binären Datenblöcken wie zum Beispiel Bildern. Diese Größen entstehen über einer Zeitachse. Entweder in festen Zeitintervallen oder Abtastraten, oder je nach dem wie sie sich verändern, mit individuellen Zeitstempeln.
 Um diese Daten mit großer Zuverlässigkeit permanent speichern zu können, wird der Datenstrom mit Hilfe eines \"Streaming\" Formats in OSF-Dateien (optimeas -Streaming-Format) geschrieben.
 
 Jede Datei beginnt mit einem Magic-Header, der das OSF-Format und den
@@ -69,7 +69,7 @@ Weitere Informationen zu:
 Ab Position 30269 folgen binäre Daten, die mit der Zeit forschreitend
 Datensätze der einzelnen Kanäle enthalten.
 
-Der Info-Bereich ist optimal. Dort können Meta-Informationen in der
+Der Info-Bereich ist optional. Dort können Meta-Informationen in der
 Datei zu den Messdaten gespeichert werden.
 
 Folgende Einträge müssen vorhanden sein:
