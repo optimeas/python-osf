@@ -10,7 +10,7 @@ OSF_FILE = EXAMPLE_DIR.joinpath("example.osf")
 
 def find_max():
     with libosf.read_file(OSF_FILE) as f:
-        samples: np.ndarray = np.array(f.get_samples(["Sine channel"]))
+        samples: np.ndarray = np.array(f.get_samples(["FuncGen.Sinus"]))
         print(f"length: {samples.shape[1]}")
 
     plt.plot((samples[1] / 1_000 ** 3).astype(np.datetime64), samples[0])
