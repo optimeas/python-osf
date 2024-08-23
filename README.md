@@ -37,8 +37,8 @@ channels = ['System.CPU.Uptime', 'System.Device.AppUptime']
 with read_file('example.osf') as file:
     samples = file.get_samples(channels)
     data = {
-            'ts_n': samples[0],
-            'value': samples[1],
+            'value': samples[0],
+            'ts_n': samples[1],
             'ch_index': samples[2]
     }
     df = pd.DataFrame(data=data)
