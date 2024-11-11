@@ -143,8 +143,8 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             ts_result = full_array[0].view("<u8")
             value_result = full_array[1]
         case 4:
-            ts_result = (result["ts_epoch"],)
-            value_result = [metadata_array[index:].tobytes().decode()]
+            ts_result = np.array((result["ts_epoch"],))
+            value_result = np.array([metadata_array[index:].tobytes().decode()])
         case 5:
             full_array = np.hsplit(
                 np.frombuffer(metadata_array[index:], dtype="B").reshape(
@@ -154,18 +154,19 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             )
             value_result = full_array[1].flatten().view(dtype=np.bool_)
             ts_result = full_array[0].flatten().view(dtype="<u8")
-        case 6:
+        case ChannelConversionType.gpsloc.value:
             full_array = np.hsplit(
                 np.frombuffer(metadata_array[index:], dtype="B").reshape(
                     -1, full_length
                 ),
                 np.array([epoch_size, full_length]),
             )
-            ts_result = full_array[0].view("<u8")[0]
-            value_result = full_array[1].reshape(-1,3,8).view(dtype=np.float64)
+            ts_result = full_array[0].view("<u8").flatten()
+            value_result = full_array[1].reshape(-1,8).view(dtype=np.float64).flatten().reshape(-1, 3)
         case _:
             print("Unable to decode blob: unsupported channel type", file=sys.stderr)
             return [], []
+    # assert ts_result.shape[0] == value_result.shape[0], "length of values and timestamp differs"
 
     return value_result, ts_result
 

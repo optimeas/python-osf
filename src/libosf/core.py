@@ -215,6 +215,7 @@ class OSF4Object(OSFObjectBase):
         if as_class:
             return RawData((result_values, result_timestamps, result_indexes), ch_list)
         else:
+            assert len(result_values) == len(result_timestamps), "Length of values and timestamps differs"
             return result_values, result_timestamps, result_indexes
 
 @contextmanager
