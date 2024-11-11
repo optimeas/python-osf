@@ -1,43 +1,51 @@
 from libosf import read_file, Channel, Location
 from pathlib import Path
+import pandas as pd
 import numpy as np
+import argparse
+import sys
 
 EXAMPLE_DIR = Path(__file__).absolute().parent
-OSF_FILE = str(EXAMPLE_DIR.joinpath("example.osf"))
+EXAMPLE_OSF_FILE = str(EXAMPLE_DIR.joinpath("example.osf"))
 
 
 def main():
-    with read_file(OSF_FILE) as f:
-        metadata = f.metadata()
-        channels = f.channels()
+    files = sys.argv[1:]
+    if len(files) == 0: # No parameters passed
+        files = [EXAMPLE_OSF_FILE]
+    for file in files:
+        with read_file(file) as f:
+            metadata = f.metadata()
+            channels = f.channels()
 
-        print(f"creator: {metadata.creator}")
-        print(f"Channel count: {len(channels)}")
-        print("")
-
-        for i, c in enumerate(channels):
+            print(f"creator: {metadata.creator}")
+            print(f"Channel count: {len(channels)}")
             print("")
-            print(f"{i}: name: {c.name}")
-            print(f"{i}: unit: {c.unit}")
-            print(f"{i}: type: {c.type}")
 
-            if c.type == "gpslocation":
-                v, t, i = f.get_samples([c.name])
-                v = [Location.from_tuple(val) for val in v]
-                for i, (ts, loc) in enumerate(zip(t,v)):
-                    ns = np.datetime64(int(ts), "ns")
-                    print(f"{i}: ts= {ns} | y= {loc}")
-                    # hint: use loc.latitude for example to process specific coordinates
-            else:
-                samples: np.ndarray = np.array(f.get_samples([c.name]))
-
-                print(f"{i}: length: {samples.shape[1]}")
+            samples = f.get_samples((c.name for c in channels))
+            samples = pd.DataFrame(
+                {"index": samples[2], "value": samples[0], "ts": samples[1]}
+            )
+            samples = samples.astype({"ts": "datetime64[ns]"})
+            for i, c in enumerate(channels):
+                current_samples = samples[samples["index"] == c.index]
                 print("")
+                print(f"{i}: name: {c.name}")
+                print(f"{i}: unit: {c.unit}")
+                print(f"{i}: type: {c.type}")
 
-                # print channel values
-                for x in range(samples.shape[1]):
-                    ns = np.datetime64(int(samples[1][x]), "ns")
-                    print(f"{x}: ts= {ns} | y= {samples[0][x]}")
+                if c.type == "gpslocation":
+                    gps_list = current_samples['value'].values.tolist()
+                    df = pd.DataFrame(columns=["Longitude", "Latitude", "Altitude"])
+                    df[df.columns] = gps_list
+                    current_samples = pd.merge(current_samples["ts"], df, how="cross")
+                    print(f"{i}: length: {current_samples.shape[0]}")
+                    print("")
+                    print(current_samples[["ts", "Longitude", "Latitude", "Altitude"]])
+                else:
+                    print(f"{i}: length: {current_samples.shape[0]}")
+                    print("")
+                    print(current_samples[["ts", "value"]])
 
 
 if __name__ == "__main__":
