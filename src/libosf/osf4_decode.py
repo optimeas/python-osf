@@ -123,13 +123,7 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
     sample_index = np.intc(0)
     match ch_info[CH_STRUCT_TYPE]:
         case ChannelConversionType.int.value:
-            full_array = np.hsplit(
-                np.frombuffer(metadata_array[index:], dtype="B").reshape(
-                    -1, full_length
-                ),
-                np.array([epoch_size, full_length]),
-            )
-            value_result = full_array[1].flatten().view(dtype=f"<u{sample_length}")
+            value_result = full_array[1].flatten().view(dtype=f"<i{sample_length}")
             ts_result = full_array[0].flatten().view(dtype="<u8")
         case ChannelConversionType.uint.value:
             value_result = full_array[1].flatten().view(dtype=f"<u{sample_length}")
