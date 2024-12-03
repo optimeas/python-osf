@@ -109,7 +109,7 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
     sample_length = ch_info[CH_STRUCT_TYPELENGTH]
     full_length = sample_length + epoch_size
 
-    if ch_info[CH_STRUCT_TYPE] != 4: # not equal string type
+    if ch_info[CH_STRUCT_TYPE] != ChannelConversionType.string.value: # not equal string type
         samples_binary = metadata_array[index:]
         samples_binary = np.resize(samples_binary, (int(samples_binary.shape[0] / full_length) * full_length,))
         try:
@@ -123,13 +123,7 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
     sample_index = np.intc(0)
     match ch_info[CH_STRUCT_TYPE]:
         case ChannelConversionType.int.value:
-            full_array = np.hsplit(
-                np.frombuffer(metadata_array[index:], dtype="B").reshape(
-                    -1, full_length
-                ),
-                np.array([epoch_size, full_length]),
-            )
-            value_result = full_array[1].flatten().view(dtype=f"<u{sample_length}")
+            value_result = full_array[1].flatten().view(dtype=f"<i{sample_length}")
             ts_result = full_array[0].flatten().view(dtype="<u8")
         case ChannelConversionType.uint.value:
             value_result = full_array[1].flatten().view(dtype=f"<u{sample_length}")
@@ -142,25 +136,13 @@ def decode_datablob(metadata_array, ch_info) -> tuple[np.ndarray, np.ndarray]:
             full_array = full_array.reshape(2, -1, order="F")
             ts_result = full_array[0].view("<u8")
             value_result = full_array[1]
-        case 4:
+        case ChannelConversionType.string.value:
             ts_result = np.array((result["ts_epoch"],))
             value_result = np.array([metadata_array[index:].tobytes().decode()])
-        case 5:
-            full_array = np.hsplit(
-                np.frombuffer(metadata_array[index:], dtype="B").reshape(
-                    -1, full_length
-                ),
-                np.array([epoch_size, full_length]),
-            )
+        case ChannelConversionType.boolean.value:
             value_result = full_array[1].flatten().view(dtype=np.bool_)
             ts_result = full_array[0].flatten().view(dtype="<u8")
         case ChannelConversionType.gpsloc.value:
-            full_array = np.hsplit(
-                np.frombuffer(metadata_array[index:], dtype="B").reshape(
-                    -1, full_length
-                ),
-                np.array([epoch_size, full_length]),
-            )
             ts_result = full_array[0].view("<u8").flatten()
             value_result = full_array[1].reshape(-1,8).view(dtype=np.float64).flatten().reshape(-1, 3)
         case _:
